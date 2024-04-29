@@ -122,6 +122,29 @@ async function updateNftUri(
   );
 }
 
+async function createCollectionNft(
+  metaplex: Metaplex,
+  uri: string,
+  data: CollectionNftData
+): Promise<NftWithToken> {
+  const { nft } = await metaplex.nfts().create(
+    {
+      uri: uri,
+      name: data.name,
+      sellerFeeBasisPoints: data.sellerFeeBasisPoints,
+      symbol: data.symbol,
+      isCollection: true,
+    },
+    { commitment: "finalized" }
+  )
+
+  console.log(
+    `Collection Mint: https://explorer.solana.com/address/${nft.address.toString()}?cluster=devnet`
+  )
+
+  return nft
+}
+
 async function main() {
   // create a new connection to the cluster's API
   const connection = new Connection(clusterApiUrl("devnet"))
@@ -144,6 +167,26 @@ async function main() {
 
   // upload the NFT data and get the URI for the metadata
   const uri = await uploadMetadata(metaplex, nftData)
+
+  const collectionNftData = {
+    name: "TestCollectionNFT",
+    symbol: "TEST",
+    description: "Test Description Collection",
+    sellerFeeBasisPoints: 100,
+    imageFile: "success.png",
+    isCollection: true,
+    collectionAuthority: user,
+  }
+
+  // upload data for the collection NFT and get the URI for the metadata
+  const collectionUri = await uploadMetadata(metaplex, collectionNftData)
+
+  // create a collection NFT using the helper function and the URI from the metadata
+  const collectionNft = await createCollectionNft(
+    metaplex,
+    collectionUri,
+    collectionNftData
+  )
 
   // create an NFT using the helper function and the URI from the metadata
   const nft = await createNft(metaplex, uri, nftData)
