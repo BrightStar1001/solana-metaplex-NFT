@@ -1,1 +1,1 @@
-# solana-metaplex-mine
+# solana-npx-client-template
